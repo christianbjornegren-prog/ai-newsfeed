@@ -24,9 +24,12 @@ logger = logging.getLogger(__name__)
 MAX_ARTICLES = 20
 
 RSS_FEEDS = [
-    {"url": "https://feeds.feedburner.com/oreilly/radar", "source": "O'Reilly Radar"},
-    {"url": "https://rss.beehiiv.com/feeds/thenewstack.io.xml", "source": "The New Stack"},
-    {"url": "https://techcrunch.com/feed/", "source": "TechCrunch"},
+    {"url": "https://openai.com/blog/rss.xml", "source": "OpenAI Blog"},
+    {"url": "https://www.anthropic.com/news/rss.xml", "source": "Anthropic News"},
+    {"url": "https://blogs.microsoft.com/ai/feed/", "source": "Microsoft AI Blog"},
+    {"url": "https://www.deeplearning.ai/the-batch/feed/", "source": "The Batch"},
+    {"url": "https://venturebeat.com/ai/feed/", "source": "VentureBeat AI"},
+    {"url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/", "source": "MIT Technology Review AI"},
 ]
 
 

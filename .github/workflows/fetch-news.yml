@@ -27,3 +27,9 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: python scripts/fetch_news.py
+
+      - name: Summarize articles
+        run: python scripts/summarize_news.py
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
