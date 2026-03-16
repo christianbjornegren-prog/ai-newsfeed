@@ -25,13 +25,17 @@ logger = logging.getLogger(__name__)
 
 MAX_ARTICLES = 20
 SYSTEM_PROMPT = (
-    "You are a news editor. When given an article, respond with a JSON "
-    "object in this exact format, with no markdown or extra text:\n"
+    "You are a news editor creating a feed card for an AI industry newsletter.\n"
+    "Given an article title and description, respond with ONLY a valid JSON "
+    "object — no markdown, no explanation, no extra text:\n"
     "{\n"
-    '  "teaser": "One single sentence max 15 words summarizing what happened.",\n'
-    '  "summary": "2-3 sentences explaining what happened, who is involved, '
-    'and why it matters. Stay in the same language as the article."\n'
-    "}"
+    '  "teaser": "<one sentence, max 12 words, what happened>",\n'
+    '  "summary": "<2-3 sentences, what happened, who is involved, '
+    'why it matters for AI. Same language as the input.>"\n'
+    "}\n"
+    "If the description is empty or unhelpful, base both fields on the title only.\n"
+    "Never say 'I cannot summarize' or ask for more information.\n"
+    "Never use markdown formatting in your response."
 )
 
 
@@ -80,12 +84,9 @@ def fetch_article_text(url: str) -> str | None:
         return None
 
 
-def summarize_with_claude(client: anthropic.Anthropic, title: str, text: str | None) -> dict:
-    """Send article content to Claude API and return teaser and summary."""
-    if text:
-        user_content = f"Title: {title}\n\nArticle text:\n{text}"
-    else:
-        user_content = f"Title: {title}\n\n(Article text could not be fetched. Summarize based on the title.)"
+def summarize_with_claude(client: anthropic.Anthropic, title: str, description: str) -> dict:
+    """Send article title and description to Claude API and return teaser and summary."""
+    user_content = f"Title: {title}\nDescription: {description}"
 
     message = client.messages.create(
         model="claude-haiku-4-5-20251001",
@@ -133,14 +134,25 @@ def main() -> None:
     for doc_id, article in articles:
         title = article.get("title", "")
         url = article.get("url", "")
+        rss_description = article.get("rss_description", "")
         logger.info("Processing: %s", title)
 
         try:
-            text = fetch_article_text(url)
-            if text is None:
-                skipped += 1
+            # Use rss_description if available, otherwise fall back to scraping
+            if rss_description:
+                description = rss_description
+                logger.info("  -> Using RSS description")
+            else:
+                scraped = fetch_article_text(url)
+                if scraped:
+                    description = scraped
+                    logger.info("  -> Using scraped text")
+                else:
+                    description = ""
+                    skipped += 1
+                    logger.info("  -> Using title only")
 
-            result = summarize_with_claude(client, title, text)
+            result = summarize_with_claude(client, title, description)
             db.collection("articles").document(doc_id).update({
                 "teaser": result["teaser"],
                 "summary": result["summary"],
