@@ -25,10 +25,19 @@ logger = logging.getLogger(__name__)
 
 MAX_ARTICLES = 20
 SYSTEM_PROMPT = (
-    "Du är en AI-nyhetsredaktör. Sammanfatta artikeln på svenska "
-    "i 2-3 meningar. Fokusera på vad som hänt, vem som är inblandat och varför "
-    "det är relevant för AI-branschen. Var koncis och saklig."
+    "You are a news editor. When given an article, respond with a JSON "
+    "object in this exact format, with no markdown or extra text:\n"
+    "{\n"
+    '  "teaser": "One single sentence max 15 words summarizing what happened.",\n'
+    '  "summary": "2-3 sentences explaining what happened, who is involved, '
+    'and why it matters. Stay in the same language as the article."\n'
+    "}"
 )
+
+
+def strip_markdown(text: str) -> str:
+    """Remove markdown formatting characters from text."""
+    return text.replace("**", "").replace("*", "").replace("#", "")
 
 
 def init_firestore() -> firestore.Client:
@@ -71,12 +80,12 @@ def fetch_article_text(url: str) -> str | None:
         return None
 
 
-def summarize_with_claude(client: anthropic.Anthropic, title: str, text: str | None) -> str:
-    """Send article content to Claude API and return a summary."""
+def summarize_with_claude(client: anthropic.Anthropic, title: str, text: str | None) -> dict:
+    """Send article content to Claude API and return teaser and summary."""
     if text:
-        user_content = f"Titel: {title}\n\nArtikeltext:\n{text}"
+        user_content = f"Title: {title}\n\nArticle text:\n{text}"
     else:
-        user_content = f"Titel: {title}\n\n(Artikeltexten kunde inte hämtas. Sammanfatta baserat på titeln.)"
+        user_content = f"Title: {title}\n\n(Article text could not be fetched. Summarize based on the title.)"
 
     message = client.messages.create(
         model="claude-haiku-4-5-20251001",
@@ -84,7 +93,15 @@ def summarize_with_claude(client: anthropic.Anthropic, title: str, text: str | N
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_content}],
     )
-    return message.content[0].text
+    raw = message.content[0].text
+    try:
+        data = json.loads(raw)
+        teaser = strip_markdown(data.get("teaser", title))
+        summary = strip_markdown(data.get("summary", "Could not summarize article."))
+    except (json.JSONDecodeError, AttributeError):
+        teaser = title
+        summary = "Could not summarize article."
+    return {"teaser": teaser, "summary": summary}
 
 
 def main() -> None:
@@ -123,15 +140,19 @@ def main() -> None:
             if text is None:
                 skipped += 1
 
-            summary = summarize_with_claude(client, title, text)
-            db.collection("articles").document(doc_id).update({"summary": summary})
+            result = summarize_with_claude(client, title, text)
+            db.collection("articles").document(doc_id).update({
+                "teaser": result["teaser"],
+                "summary": result["summary"],
+            })
             summarized += 1
             logger.info("  -> Summarized successfully.")
         except Exception as exc:
             logger.error("  -> Error summarizing '%s': %s", title, exc)
             try:
                 db.collection("articles").document(doc_id).update({
-                    "summary": "Kunde inte hämta innehåll"
+                    "teaser": title,
+                    "summary": "Could not summarize article.",
                 })
             except Exception:
                 pass
