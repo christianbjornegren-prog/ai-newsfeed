@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Newsfeed</title>
+
+  <!-- GitHub Pages: configure repository to serve from docs/ folder in Settings > Pages -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="header">
+    <h1>AI <span>Newsfeed</span></h1>
+  </header>
+
+  <main class="feed" id="feed">
+    <div class="loader" id="loader">
+      <div class="loader-spinner"></div>
+      <span class="loader-text">Hämtar artiklar&hellip;</span>
+    </div>
+  </main>
+
+  <script src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
+
+</body>
+</html>

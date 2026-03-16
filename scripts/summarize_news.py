@@ -101,6 +101,7 @@ def main() -> None:
     docs = (
         db.collection("articles")
         .where("summary", "==", None)
+        .order_by("fetched_at", direction=firestore.Query.DESCENDING)
         .limit(MAX_ARTICLES)
         .stream()
     )
