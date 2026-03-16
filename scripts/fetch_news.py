@@ -21,15 +21,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-MAX_ARTICLES = 20
+MAX_PER_SOURCE = 4
 
 RSS_FEEDS = [
     {"url": "https://openai.com/blog/rss.xml", "source": "OpenAI Blog"},
-    {"url": "https://www.anthropic.com/news/rss.xml", "source": "Anthropic News"},
+    {"url": "https://raw.githubusercontent.com/taobojlen/anthropic-rss-feed/main/anthropic_news_rss.xml", "source": "Anthropic News"},
     {"url": "https://blogs.microsoft.com/ai/feed/", "source": "Microsoft AI Blog"},
-    {"url": "https://www.deeplearning.ai/the-batch/feed/", "source": "The Batch"},
-    {"url": "https://venturebeat.com/ai/feed/", "source": "VentureBeat AI"},
     {"url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/", "source": "MIT Technology Review AI"},
+    {"url": "https://venturebeat.com/category/ai/feed/", "source": "VentureBeat AI"},
 ]
 
 
@@ -85,16 +84,23 @@ def fetch_entries(feed_config: dict) -> list[dict]:
         if not link or not title:
             continue
 
+        rss_description = getattr(entry, "summary", "") or ""
+
         entries.append(
             {
                 "title": title.strip(),
                 "url": link.strip(),
                 "source": source,
                 "published_at": parse_published_at(entry),
+                "rss_description": rss_description.strip(),
             }
         )
 
-    logger.info("  -> %d entries found in %s", len(entries), source)
+    # Sort by published date descending, keep only the latest per source
+    entries.sort(key=lambda e: e["published_at"], reverse=True)
+    entries = entries[:MAX_PER_SOURCE]
+
+    logger.info("  -> %d entries found in %s (keeping %d)", len(parsed.entries), source, len(entries))
     return entries
 
 
@@ -129,10 +135,6 @@ def main() -> None:
     skipped = 0
 
     for entry in all_entries:
-        if saved >= MAX_ARTICLES:
-            skipped += fetched - saved - skipped
-            break
-
         if entry["url"] in existing_urls:
             skipped += 1
             continue
@@ -143,17 +145,13 @@ def main() -> None:
             "source": entry["source"],
             "published_at": entry["published_at"],
             "fetched_at": datetime.now(timezone.utc),
+            "rss_description": entry.get("rss_description", ""),
             "summary": None,
             "category": None,
         }
         save_article(db, article)
         existing_urls.add(entry["url"])
         saved += 1
-
-    # Remaining entries that were not processed due to MAX_ARTICLES cap
-    remaining = fetched - saved - skipped
-    if remaining > 0:
-        skipped += remaining
 
     logger.info("--- Run summary ---")
     logger.info("  Fetched : %d", fetched)
