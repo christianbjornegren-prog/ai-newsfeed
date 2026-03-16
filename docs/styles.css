@@ -108,14 +108,12 @@ body {
 /* Article card */
 
 .card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.25rem 1.25rem 1rem;
-  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 0;
+  cursor: pointer;
   opacity: 0;
   transform: translateY(16px);
-  transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.25s ease;
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
 .card.visible {
@@ -123,8 +121,11 @@ body {
   transform: translateY(0);
 }
 
-.card:hover {
-  box-shadow: 0 4px 24px rgba(108, 99, 255, 0.08);
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
 }
 
 .card-source {
@@ -132,16 +133,39 @@ body {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 0.5rem;
+  color: var(--text-muted);
+}
+
+.card-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 .card-title {
   font-size: 1.125rem;
   font-weight: 700;
   line-height: 1.35;
-  margin-bottom: 0.625rem;
+  margin-bottom: 0.375rem;
   color: var(--text);
+}
+
+.card-teaser {
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* Expandable details panel */
+
+.card-details {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.card.expanded .card-details {
+  max-height: 300px;
 }
 
 .card-summary {
@@ -149,16 +173,12 @@ body {
   font-weight: 400;
   line-height: 1.65;
   color: var(--text-muted);
-  margin-bottom: 0.875rem;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  margin-top: 0.75rem;
 }
 
 .card-link {
+  display: inline-block;
+  margin-top: 0.625rem;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--accent);
@@ -169,11 +189,6 @@ body {
 
 .card-link:hover {
   opacity: 0.75;
-}
-
-.card-date {
-  font-size: 0.75rem;
-  color: var(--text-muted);
 }
 
 /* Empty state */
