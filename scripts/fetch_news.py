@@ -7,10 +7,11 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import feedparser
 import firebase_admin
+from bs4 import BeautifulSoup
 from dateutil import parser as dateutil_parser
 from firebase_admin import credentials, firestore
 
@@ -50,8 +51,11 @@ def init_firestore() -> firestore.Client:
     return firestore.client()
 
 
-def parse_published_at(entry) -> datetime:
-    """Extract and parse the published date from a feed entry."""
+def parse_published_at(entry) -> datetime | None:
+    """Extract and parse the published date from a feed entry.
+
+    Returns None if no date could be parsed.
+    """
     for field in ("published", "updated"):
         value = getattr(entry, field, None)
         if value:
@@ -62,7 +66,13 @@ def parse_published_at(entry) -> datetime:
                 return dt
             except (ValueError, OverflowError):
                 continue
-    return datetime.now(timezone.utc)
+    return None
+
+
+def strip_html(text: str) -> str:
+    """Remove HTML tags from text using BeautifulSoup."""
+    cleaned = BeautifulSoup(text, "html.parser").get_text()
+    return cleaned if len(cleaned) >= 20 else ""
 
 
 def fetch_entries(feed_config: dict) -> list[dict]:
@@ -77,22 +87,32 @@ def fetch_entries(feed_config: dict) -> list[dict]:
         logger.warning("Failed to parse feed %s: %s", source, parsed.bozo_exception)
         return []
 
+    cutoff = datetime.now(timezone.utc) - timedelta(days=7)
     entries = []
+    filtered_old = 0
+
     for entry in parsed.entries:
         link = getattr(entry, "link", None)
         title = getattr(entry, "title", None)
         if not link or not title:
             continue
 
-        rss_description = getattr(entry, "summary", "") or ""
+        published_at = parse_published_at(entry)
+
+        # Filter out articles older than 7 days (keep if no date available)
+        if published_at is not None and published_at < cutoff:
+            filtered_old += 1
+            continue
+
+        rss_description = strip_html((getattr(entry, "summary", "") or "").strip())
 
         entries.append(
             {
                 "title": title.strip(),
                 "url": link.strip(),
                 "source": source,
-                "published_at": parse_published_at(entry),
-                "rss_description": rss_description.strip(),
+                "published_at": published_at or datetime.now(timezone.utc),
+                "rss_description": rss_description,
             }
         )
 
@@ -100,7 +120,10 @@ def fetch_entries(feed_config: dict) -> list[dict]:
     entries.sort(key=lambda e: e["published_at"], reverse=True)
     entries = entries[:MAX_PER_SOURCE]
 
-    logger.info("  -> %d entries found in %s (keeping %d)", len(parsed.entries), source, len(entries))
+    logger.info(
+        "  -> %d entries found in %s (keeping %d, filtered %d old)",
+        len(parsed.entries), source, len(entries), filtered_old,
+    )
     return entries
 
 

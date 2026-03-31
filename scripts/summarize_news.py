@@ -86,7 +86,15 @@ def fetch_article_text(url: str) -> str | None:
 
 def summarize_with_claude(client: anthropic.Anthropic, title: str, description: str) -> dict:
     """Send article title and description to Claude API and return teaser and summary."""
-    user_content = f"Title: {title}\nDescription: {description}"
+    if description:
+        user_content = f"Title: {title}\nDescription: {description}"
+    else:
+        user_content = (
+            f"Title: {title}\n"
+            "Description: (not available)\n\n"
+            "Based on the title only, write a teaser and summary. "
+            "Do not say you cannot summarize."
+        )
 
     message = client.messages.create(
         model="claude-haiku-4-5-20251001",
@@ -98,10 +106,10 @@ def summarize_with_claude(client: anthropic.Anthropic, title: str, description: 
     try:
         data = json.loads(raw)
         teaser = strip_markdown(data.get("teaser", title))
-        summary = strip_markdown(data.get("summary", "Could not summarize article."))
+        summary = strip_markdown(data.get("summary", title))
     except (json.JSONDecodeError, AttributeError):
         teaser = title
-        summary = "Could not summarize article."
+        summary = title
     return {"teaser": teaser, "summary": summary}
 
 
@@ -149,8 +157,7 @@ def main() -> None:
                     logger.info("  -> Using scraped text")
                 else:
                     description = ""
-                    skipped += 1
-                    logger.info("  -> Using title only")
+                    logger.info("  -> Using title only (will ask Claude to summarize from title)")
 
             result = summarize_with_claude(client, title, description)
             db.collection("articles").document(doc_id).update({
@@ -161,13 +168,6 @@ def main() -> None:
             logger.info("  -> Summarized successfully.")
         except Exception as exc:
             logger.error("  -> Error summarizing '%s': %s", title, exc)
-            try:
-                db.collection("articles").document(doc_id).update({
-                    "teaser": title,
-                    "summary": "Could not summarize article.",
-                })
-            except Exception:
-                pass
             errors += 1
 
     logger.info("--- Summarize summary ---")
