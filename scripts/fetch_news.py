@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 
 import feedparser
 import firebase_admin
+import requests
 from bs4 import BeautifulSoup
 from dateutil import parser as dateutil_parser
 from firebase_admin import credentials, firestore
@@ -75,6 +76,22 @@ def strip_html(text: str) -> str:
     return cleaned if len(cleaned) >= 20 else ""
 
 
+def fetch_og_image(url: str) -> str | None:
+    """Fetch the Open Graph image URL from a page."""
+    try:
+        resp = requests.get(url, timeout=10, headers={
+            "User-Agent": "Mozilla/5.0 (compatible; AI-Newsfeed-Bot/1.0)"
+        })
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+        tag = soup.find("meta", property="og:image")
+        if tag and tag.get("content"):
+            return tag["content"]
+    except Exception:
+        pass
+    return None
+
+
 def fetch_entries(feed_config: dict) -> list[dict]:
     """Fetch and parse entries from a single RSS feed."""
     url = feed_config["url"]
@@ -133,9 +150,10 @@ def get_existing_urls(db: firestore.Client) -> set[str]:
     return {doc.get("url") for doc in docs if doc.get("url")}
 
 
-def save_article(db: firestore.Client, article: dict) -> None:
-    """Save a single article document to Firestore."""
-    db.collection("articles").add(article)
+def save_article(db: firestore.Client, article: dict):
+    """Save a single article document to Firestore and return the doc reference."""
+    _, doc_ref = db.collection("articles").add(article)
+    return doc_ref
 
 
 def main() -> None:
@@ -171,10 +189,19 @@ def main() -> None:
             "rss_description": entry.get("rss_description", ""),
             "summary": None,
             "category": None,
+            "image_url": None,
         }
-        save_article(db, article)
+        doc_ref = save_article(db, article)
         existing_urls.add(entry["url"])
         saved += 1
+
+        # Fetch OG image after article is saved — errors must not block saving
+        try:
+            image_url = fetch_og_image(entry["url"])
+            if image_url:
+                doc_ref.update({"image_url": image_url})
+        except Exception:
+            pass
 
     logger.info("--- Run summary ---")
     logger.info("  Fetched : %d", fetched)

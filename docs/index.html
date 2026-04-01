@@ -15,15 +15,25 @@
 <body>
 
   <header class="header">
-    <h1>AI <span>Newsfeed</span></h1>
+    <div class="header-inner">
+      <h1>AI <span>Newsfeed</span></h1>
+      <button class="refresh-btn" id="refreshBtn" title="Uppdatera nyheter">&#8635;</button>
+    </div>
   </header>
 
   <main class="feed" id="feed">
     <div class="loader" id="loader">
       <div class="loader-spinner"></div>
-      <span class="loader-text">Hämtar artiklar&hellip;</span>
+      <span class="loader-text">H&auml;mtar artiklar&hellip;</span>
     </div>
   </main>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose">&times;</button>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
 
   <script src="firebase-config.js"></script>
   <script type="module" src="app.js"></script>
