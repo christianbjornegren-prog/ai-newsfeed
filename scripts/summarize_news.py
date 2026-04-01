@@ -1,7 +1,3 @@
-Claude Code klistrade in min förklaring som kod — det är mitt fel att prompten var otydlig.
-Här är en ren prompt utan förklaringstext:
-Ersätt hela innehållet i scripts/summarize_news.py med exakt denna kod:
-
 #!/usr/bin/env python3
 """
 Summarize articles stored in Firestore using Claude API.
