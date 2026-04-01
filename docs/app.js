@@ -1,5 +1,17 @@
 // AI Newsfeed — fetch articles from Firestore and render feed
 
+// --- GitHub Actions refresh button config ---
+// To enable the refresh button:
+// 1. Go to https://github.com/settings/tokens
+// 2. Create a Classic token with scope: workflow
+// 3. Replace PLACEHOLDER_GITHUB_TOKEN below with your token
+// NOTE: The token will be visible in source code. This project is public —
+//       consider whether that is acceptable for a hobby project.
+const GITHUB_OWNER = "christianbjornegren-prog";
+const GITHUB_REPO = "ai-newsfeed";
+const GITHUB_WORKFLOW = "fetch-news.yml";
+const GITHUB_TOKEN = "PLACEHOLDER_GITHUB_TOKEN";
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getFirestore,
@@ -16,20 +28,48 @@ const db = getFirestore(app);
 
 const feedEl = document.getElementById("feed");
 const loaderEl = document.getElementById("loader");
+const modalOverlay = document.getElementById("modalOverlay");
+const modalBody = document.getElementById("modalBody");
+const modalClose = document.getElementById("modalClose");
 
-function timeAgo(timestamp) {
+const SV_MONTHS = ["jan", "feb", "mar", "apr", "maj", "jun",
+                    "jul", "aug", "sep", "okt", "nov", "dec"];
+
+function formatDate(timestamp) {
   if (!timestamp) return "";
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60) return seconds + "s";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return minutes + "m";
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return hours + "h";
-  const days = Math.floor(hours / 24);
-  if (days < 7) return days + "d";
-  const weeks = Math.floor(days / 7);
-  return weeks + "w";
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+
+  if (diffMin < 60) {
+    return diffMin + " min";
+  }
+
+  const pad = function (n) { return n < 10 ? "0" + n : "" + n; };
+  const time = pad(date.getHours()) + ":" + pad(date.getMinutes());
+
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterdayStart = new Date(todayStart.getTime() - 86400000);
+
+  if (date >= todayStart) {
+    return time;
+  }
+  if (date >= yesterdayStart) {
+    return "I g\u00e5r " + time;
+  }
+  return date.getDate() + " " + SV_MONTHS[date.getMonth()] + ", " + time;
+}
+
+function formatFullDate(timestamp) {
+  if (!timestamp) return "";
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  const pad = function (n) { return n < 10 ? "0" + n : "" + n; };
+  var day = date.getDate();
+  var month = SV_MONTHS[date.getMonth()];
+  var year = date.getFullYear();
+  var time = pad(date.getHours()) + ":" + pad(date.getMinutes());
+  return day + " " + month + " " + year + ", " + time;
 }
 
 function escapeHtml(str) {
@@ -42,39 +82,125 @@ function escapeAttr(str) {
   return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function openModal(article) {
+  var html = "";
+
+  if (article.image_url) {
+    html += '<img class="modal-image" src="' + escapeAttr(article.image_url) + '" alt="">';
+  }
+
+  html += '<div class="modal-content">';
+  html += '<div class="modal-source">' + escapeHtml(article.source || "") + '</div>';
+  html += '<h2 class="modal-title">' + escapeHtml(article.title || "") + '</h2>';
+  html += '<div class="modal-date">' + escapeHtml(formatFullDate(article.published_at || article.fetched_at)) + '</div>';
+  html += '<p class="modal-summary">' + escapeHtml(article.summary || "") + '</p>';
+  html += '<a class="modal-link" href="' + escapeAttr(article.url || "#") + '" target="_blank" rel="noopener noreferrer">Read more \u2192</a>';
+  html += '</div>';
+
+  modalBody.innerHTML = html;
+  modalOverlay.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function closeModal() {
+  modalOverlay.classList.remove("active");
+  document.body.style.overflow = "";
+}
+
+modalClose.addEventListener("click", closeModal);
+modalOverlay.addEventListener("click", function (e) {
+  if (e.target === modalOverlay) closeModal();
+});
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") closeModal();
+});
+
 function createCard(article) {
   const card = document.createElement("article");
   card.className = "card";
 
   const teaser = article.teaser || article.summary || "";
-  const summary = article.summary || "";
-  const ago = timeAgo(article.published_at || article.fetched_at);
+  const ago = formatDate(article.published_at || article.fetched_at);
+
+  var bodyHtml =
+    '<div class="card-text">' +
+      '<h2 class="card-title">' + escapeHtml(article.title || "") + '</h2>' +
+      '<p class="card-teaser">' + escapeHtml(teaser) + '</p>' +
+    '</div>';
+
+  if (article.image_url) {
+    bodyHtml += '<img class="card-thumb" src="' + escapeAttr(article.image_url) + '" alt="">';
+  }
 
   card.innerHTML =
     '<div class="card-header">' +
       '<span class="card-source">' + escapeHtml(article.source || "") + '</span>' +
       '<span class="card-time">' + escapeHtml(ago) + '</span>' +
     '</div>' +
-    '<h2 class="card-title">' + escapeHtml(article.title || "") + '</h2>' +
-    '<p class="card-teaser">' + escapeHtml(teaser) + '</p>' +
-    '<div class="card-details">' +
-      '<p class="card-summary">' + escapeHtml(summary) + '</p>' +
-      '<a class="card-link" href="' + escapeAttr(article.url || "#") + '" target="_blank" rel="noopener noreferrer">Read more \u2192</a>' +
-    '</div>';
+    '<div class="card-body">' + bodyHtml + '</div>';
 
-  card.addEventListener("click", function (e) {
-    if (e.target.closest(".card-link")) return;
-    const wasExpanded = card.classList.contains("expanded");
-    feedEl.querySelectorAll(".card.expanded").forEach(function (c) {
-      c.classList.remove("expanded");
-    });
-    if (!wasExpanded) {
-      card.classList.add("expanded");
-    }
+  card.addEventListener("click", function () {
+    openModal(article);
   });
 
   return card;
 }
+
+// --- Refresh button ---
+
+function initRefreshButton() {
+  const btn = document.getElementById("refreshBtn");
+
+  btn.addEventListener("click", async function () {
+    if (GITHUB_TOKEN === "PLACEHOLDER_GITHUB_TOKEN") {
+      btn.classList.add("status");
+      btn.textContent = "Token saknas";
+      btn.disabled = true;
+      setTimeout(function () {
+        btn.classList.remove("status");
+        btn.innerHTML = "&#8635;";
+        btn.disabled = false;
+      }, 3000);
+      return;
+    }
+
+    btn.classList.add("status");
+    btn.textContent = "Uppdaterar...";
+    btn.disabled = true;
+
+    try {
+      const url = "https://api.github.com/repos/" + GITHUB_OWNER + "/" + GITHUB_REPO +
+        "/actions/workflows/" + GITHUB_WORKFLOW + "/dispatches";
+
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Authorization": "token " + GITHUB_TOKEN,
+          "Accept": "application/vnd.github.v3+json",
+        },
+        body: JSON.stringify({ ref: "main" }),
+      });
+
+      if (resp.status === 204) {
+        btn.textContent = "Startat! Klart om ~2 min";
+      } else {
+        btn.textContent = "Fel \u2014 f\u00f6rs\u00f6k igen";
+      }
+    } catch (e) {
+      btn.textContent = "Fel \u2014 f\u00f6rs\u00f6k igen";
+    }
+
+    setTimeout(function () {
+      btn.classList.remove("status");
+      btn.innerHTML = "&#8635;";
+      btn.disabled = false;
+    }, 5000);
+  });
+}
+
+initRefreshButton();
+
+// --- Load articles ---
 
 async function loadArticles() {
   try {
