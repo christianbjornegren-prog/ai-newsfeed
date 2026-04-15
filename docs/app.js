@@ -1,17 +1,5 @@
 // AI Newsfeed — fetch articles from Firestore and render feed
 
-// --- GitHub Actions refresh button config ---
-// To enable the refresh button:
-// 1. Go to https://github.com/settings/tokens
-// 2. Create a Classic token with scope: workflow
-// 3. Replace PLACEHOLDER_GITHUB_TOKEN below with your token
-// NOTE: The token will be visible in source code. This project is public —
-//       consider whether that is acceptable for a hobby project.
-const GITHUB_OWNER = "christianbjornegren-prog";
-const GITHUB_REPO = "ai-newsfeed";
-const GITHUB_WORKFLOW = "fetch-news.yml";
-const GITHUB_TOKEN = "PLACEHOLDER_GITHUB_TOKEN";
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getFirestore,
@@ -146,60 +134,6 @@ function createCard(article) {
   return card;
 }
 
-// --- Refresh button ---
-
-function initRefreshButton() {
-  const btn = document.getElementById("refreshBtn");
-
-  btn.addEventListener("click", async function () {
-    if (GITHUB_TOKEN === "PLACEHOLDER_GITHUB_TOKEN") {
-      btn.classList.add("status");
-      btn.textContent = "Token saknas";
-      btn.disabled = true;
-      setTimeout(function () {
-        btn.classList.remove("status");
-        btn.innerHTML = "&#8635;";
-        btn.disabled = false;
-      }, 3000);
-      return;
-    }
-
-    btn.classList.add("status");
-    btn.textContent = "Uppdaterar...";
-    btn.disabled = true;
-
-    try {
-      const url = "https://api.github.com/repos/" + GITHUB_OWNER + "/" + GITHUB_REPO +
-        "/actions/workflows/" + GITHUB_WORKFLOW + "/dispatches";
-
-      const resp = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Authorization": "token " + GITHUB_TOKEN,
-          "Accept": "application/vnd.github.v3+json",
-        },
-        body: JSON.stringify({ ref: "main" }),
-      });
-
-      if (resp.status === 204) {
-        btn.textContent = "Startat! Klart om ~2 min";
-      } else {
-        btn.textContent = "Fel \u2014 f\u00f6rs\u00f6k igen";
-      }
-    } catch (e) {
-      btn.textContent = "Fel \u2014 f\u00f6rs\u00f6k igen";
-    }
-
-    setTimeout(function () {
-      btn.classList.remove("status");
-      btn.innerHTML = "&#8635;";
-      btn.disabled = false;
-    }, 5000);
-  });
-}
-
-initRefreshButton();
-
 // --- Load articles ---
 
 async function loadArticles() {
@@ -220,8 +154,18 @@ async function loadArticles() {
       return;
     }
 
+    const articles = [];
     snapshot.forEach(function (doc) {
-      const card = createCard(doc.data());
+      articles.push(doc.data());
+    });
+    articles.sort(function (a, b) {
+      const timeA = a.published_at ? (a.published_at.toMillis ? a.published_at.toMillis() : new Date(a.published_at).getTime()) : 0;
+      const timeB = b.published_at ? (b.published_at.toMillis ? b.published_at.toMillis() : new Date(b.published_at).getTime()) : 0;
+      return timeB - timeA;
+    });
+
+    articles.forEach(function (article) {
+      const card = createCard(article);
       feedEl.appendChild(card);
     });
 
