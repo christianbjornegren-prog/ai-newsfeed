@@ -27,10 +27,11 @@ MAX_PER_SOURCE = 4
 
 RSS_FEEDS = [
     {"url": "https://openai.com/blog/rss.xml", "source": "OpenAI Blog"},
-    {"url": "https://raw.githubusercontent.com/taobojlen/anthropic-rss-feed/main/anthropic_news_rss.xml", "source": "Anthropic News"},
-    {"url": "https://blogs.microsoft.com/ai/feed/", "source": "Microsoft AI Blog"},
+    {"url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_news.xml", "source": "Anthropic News"},
     {"url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/", "source": "MIT Technology Review AI"},
-    {"url": "https://venturebeat.com/category/ai/feed/", "source": "VentureBeat AI"},
+    {"url": "https://the-decoder.com/feed/", "source": "The Decoder"},
+    {"url": "https://techcrunch.com/category/artificial-intelligence/feed/", "source": "TechCrunch AI"},
+    {"url": "https://arstechnica.com/tag/ai/feed/", "source": "Ars Technica AI"},
 ]
 
 
