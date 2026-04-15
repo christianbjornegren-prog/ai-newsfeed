@@ -30,9 +30,12 @@ SYSTEM_PROMPT = (
     "{\n"
     '  "teaser": "<one sentence, max 12 words, what happened>",\n'
     '  "summary": "<2-3 sentences, what happened, who is involved, '
-    'why it matters for AI. Same language as the input.>"\n'
+    'why it matters for AI. Same language as the input.>",\n'
+    '  "topic": "<one or two words in English describing the topic, '
+    "e.g. OpenAI, Anthropic, AI Safety, AI Health, AI Regulation, "
+    'AI Coding, AI Models, AI Investment, AI Policy>"\n'
     "}\n"
-    "If the description is empty or unhelpful, base both fields on the title only.\n"
+    "If the description is empty or unhelpful, base all fields on the title only.\n"
     "Never say 'I cannot summarize' or ask for more information.\n"
     "Never use markdown formatting in your response."
 )
@@ -107,13 +110,15 @@ def summarize_with_claude(client, title: str, description: str) -> dict:
         data = json.loads(clean)
         teaser = strip_markdown(data.get("teaser", ""))
         summary = strip_markdown(data.get("summary", ""))
+        topic = strip_markdown(data.get("topic", "")) or "AI"
         logger.info("  -> Parsed teaser: %s", teaser)
         logger.info("  -> Parsed summary: %s", summary)
-        return {"teaser": teaser, "summary": summary}
+        logger.info("  -> Parsed topic: %s", topic)
+        return {"teaser": teaser, "summary": summary, "topic": topic}
     except (json.JSONDecodeError, AttributeError) as e:
         logger.error("  -> JSON parse failed: %s", e)
         logger.error("  -> Raw was: %s", raw)
-        return {"teaser": "", "summary": ""}
+        return {"teaser": "", "summary": "", "topic": "AI"}
 
 
 def main():
@@ -179,6 +184,7 @@ def main():
             db.collection("articles").document(doc_id).update({
                 "teaser": result["teaser"],
                 "summary": result["summary"],
+                "topic": result.get("topic", "AI"),
             })
             logger.info("  -> Firestore updated: %s", doc_id)
             summarized += 1
