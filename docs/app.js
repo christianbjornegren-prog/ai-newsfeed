@@ -134,6 +134,138 @@ function createCard(article) {
   return card;
 }
 
+// --- Clustering helpers ---
+
+function getTimestamp(article) {
+  var ts = article.published_at || article.fetched_at;
+  if (!ts) return 0;
+  if (ts.toMillis) return ts.toMillis();
+  return new Date(ts).getTime();
+}
+
+function createCluster(topic, articles) {
+  var cluster = document.createElement("div");
+  cluster.className = "cluster";
+
+  // Header bar
+  var header = document.createElement("div");
+  header.className = "cluster-header";
+  header.textContent = topic.toUpperCase();
+  cluster.appendChild(header);
+
+  // Main article (newest)
+  var main = articles[0];
+  var mainEl = document.createElement("div");
+  mainEl.className = "cluster-main";
+
+  var mainHtml = "";
+  if (main.image_url) {
+    mainHtml += '<img class="cluster-main-image" src="' + escapeAttr(main.image_url) + '" alt="">';
+  }
+  mainHtml += '<div class="cluster-main-content">';
+  mainHtml += '<div class="card-header">';
+  mainHtml += '<span class="card-source">' + escapeHtml(main.source || "") + '</span>';
+  mainHtml += '<span class="card-time">' + escapeHtml(formatDate(main.published_at || main.fetched_at)) + '</span>';
+  mainHtml += '</div>';
+  mainHtml += '<h2 class="card-title">' + escapeHtml(main.title || "") + '</h2>';
+  mainHtml += '<p class="card-teaser">' + escapeHtml(main.teaser || main.summary || "") + '</p>';
+  mainHtml += '</div>';
+
+  mainEl.innerHTML = mainHtml;
+  mainEl.addEventListener("click", function () { openModal(main); });
+  cluster.appendChild(mainEl);
+
+  // Sub articles
+  articles.slice(1).forEach(function (sub, idx) {
+    var subEl = document.createElement("div");
+    subEl.className = "cluster-sub";
+    if (idx >= 2) subEl.classList.add("cluster-hidden");
+
+    var subHtml = '<div class="cluster-sub-text">';
+    subHtml += '<div class="card-header">';
+    subHtml += '<span class="card-source">' + escapeHtml(sub.source || "") + '</span>';
+    subHtml += '<span class="card-time">' + escapeHtml(formatDate(sub.published_at || sub.fetched_at)) + '</span>';
+    subHtml += '</div>';
+    subHtml += '<h2 class="cluster-sub-title">' + escapeHtml(sub.title || "") + '</h2>';
+    subHtml += '<p class="card-teaser">' + escapeHtml(sub.teaser || sub.summary || "") + '</p>';
+    subHtml += '</div>';
+    if (sub.image_url) {
+      subHtml += '<img class="card-thumb" src="' + escapeAttr(sub.image_url) + '" alt="">';
+    }
+
+    subEl.innerHTML = subHtml;
+    subEl.addEventListener("click", function () { openModal(sub); });
+    cluster.appendChild(subEl);
+  });
+
+  // "Mer om" toggle if more than 3 articles total
+  if (articles.length > 3) {
+    var more = document.createElement("div");
+    more.className = "cluster-more";
+    more.innerHTML = 'Mer om ' + escapeHtml(topic) + ' &rarr;';
+    more.addEventListener("click", function () {
+      var hidden = cluster.querySelectorAll(".cluster-sub.cluster-hidden");
+      if (hidden.length > 0) {
+        hidden.forEach(function (el) { el.classList.remove("cluster-hidden"); });
+        more.innerHTML = 'Visa mindre &uarr;';
+      } else {
+        var subs = cluster.querySelectorAll(".cluster-sub");
+        for (var j = 0; j < subs.length; j++) {
+          if (j >= 2) subs[j].classList.add("cluster-hidden");
+        }
+        more.innerHTML = 'Mer om ' + escapeHtml(topic) + ' &rarr;';
+      }
+    });
+    cluster.appendChild(more);
+  }
+
+  return cluster;
+}
+
+function buildFeedItems(articles) {
+  // Group by topic
+  var groups = {};
+  articles.forEach(function (article) {
+    var topic = article.topic || "AI";
+    if (!groups[topic]) groups[topic] = [];
+    groups[topic].push(article);
+  });
+
+  // Sort each group internally by published_at desc
+  Object.keys(groups).forEach(function (topic) {
+    groups[topic].sort(function (a, b) {
+      return getTimestamp(b) - getTimestamp(a);
+    });
+  });
+
+  // Build timeline: clusters (2+) and solo articles
+  var items = [];
+  Object.keys(groups).forEach(function (topic) {
+    var group = groups[topic];
+    if (group.length >= 2) {
+      items.push({
+        type: "cluster",
+        topic: topic,
+        articles: group,
+        sortTime: getTimestamp(group[0])
+      });
+    } else {
+      items.push({
+        type: "solo",
+        article: group[0],
+        sortTime: getTimestamp(group[0])
+      });
+    }
+  });
+
+  // Sort by newest first
+  items.sort(function (a, b) {
+    return b.sortTime - a.sortTime;
+  });
+
+  return items;
+}
+
 // --- Load articles ---
 
 async function loadArticles() {
@@ -158,21 +290,21 @@ async function loadArticles() {
     snapshot.forEach(function (doc) {
       articles.push(doc.data());
     });
-    articles.sort(function (a, b) {
-      const timeA = a.published_at ? (a.published_at.toMillis ? a.published_at.toMillis() : new Date(a.published_at).getTime()) : 0;
-      const timeB = b.published_at ? (b.published_at.toMillis ? b.published_at.toMillis() : new Date(b.published_at).getTime()) : 0;
-      return timeB - timeA;
+
+    var items = buildFeedItems(articles);
+
+    items.forEach(function (item) {
+      if (item.type === "cluster") {
+        feedEl.appendChild(createCluster(item.topic, item.articles));
+      } else {
+        feedEl.appendChild(createCard(item.article));
+      }
     });
 
-    articles.forEach(function (article) {
-      const card = createCard(article);
-      feedEl.appendChild(card);
-    });
-
-    // Staggered fade-in
-    const cards = feedEl.querySelectorAll(".card");
-    cards.forEach(function (card, i) {
-      setTimeout(function () { card.classList.add("visible"); }, i * 80);
+    // Staggered fade-in for both cards and clusters
+    var elements = feedEl.querySelectorAll(".card, .cluster");
+    elements.forEach(function (el, i) {
+      setTimeout(function () { el.classList.add("visible"); }, i * 80);
     });
   } catch (err) {
     console.error("Failed to load articles:", err);

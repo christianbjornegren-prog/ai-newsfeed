@@ -23,7 +23,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-MAX_PER_SOURCE = 4
+MAX_PER_SOURCE = 10
 
 RSS_FEEDS = [
     {"url": "https://openai.com/blog/rss.xml", "source": "OpenAI Blog"},
