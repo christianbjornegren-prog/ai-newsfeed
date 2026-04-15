@@ -18,10 +18,10 @@ SOURCES = [
      "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/"},
     {"name": "The Decoder",
      "url": "https://the-decoder.com/feed/"},
-    {"name": "Hugging Face Blog",
-     "url": "https://huggingface.co/blog/feed.xml"},
-    {"name": "Reddit r/artificial",
-     "url": "https://www.reddit.com/r/artificial/.rss"},
+    {"name": "Google DeepMind Blog",
+     "url": "https://deepmind.google/discover/blog/rss/"},
+    {"name": "Wired AI",
+     "url": "https://www.wired.com/feed/category/artificial-intelligence/rss"},
 ]
 
 TIMEOUT_SECONDS = 10
