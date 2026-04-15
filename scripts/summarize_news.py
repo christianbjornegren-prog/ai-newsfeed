@@ -31,9 +31,17 @@ SYSTEM_PROMPT = (
     '  "teaser": "<one sentence, max 12 words, what happened>",\n'
     '  "summary": "<2-3 sentences, what happened, who is involved, '
     'why it matters for AI. Same language as the input.>",\n'
-    '  "topic": "<one or two words in English describing the topic, '
-    "e.g. OpenAI, Anthropic, AI Safety, AI Health, AI Regulation, "
-    'AI Coding, AI Models, AI Investment, AI Policy>"\n'
+    '  "topic": "<Choose the MOST SPECIFIC topic that applies. '
+    "Use company names when the article is primarily about that company: "
+    "OpenAI, Anthropic, Google AI, Meta AI, Microsoft AI, Mistral, "
+    "Apple AI, xAI, Nvidia, Hugging Face. "
+    "Use these topic names for broader themes ONLY when no specific "
+    "company is the focus: "
+    "AI Safety, AI Policy, AI Health, AI Education, AI Coding, "
+    "AI Agents, AI Models, AI Investment, AI Hardware. "
+    "NEVER use just 'AI' as a topic — always be more specific. "
+    "If truly no other topic fits, use the most prominent noun in "
+    'the title.>"\n'
     "}\n"
     "If the description is empty or unhelpful, base all fields on the title only.\n"
     "Never say 'I cannot summarize' or ask for more information.\n"
