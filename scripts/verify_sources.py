@@ -12,18 +12,16 @@ import feedparser
 SOURCES = [
     {"name": "OpenAI Blog",
      "url": "https://openai.com/blog/rss.xml"},
-    {"name": "Anthropic News (Olshansk)",
+    {"name": "Anthropic News",
      "url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_news.xml"},
-    {"name": "Microsoft AI Blog",
-     "url": "https://blogs.microsoft.com/ai/feed/"},
     {"name": "MIT Technology Review AI",
      "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/"},
-    {"name": "VentureBeat AI",
-     "url": "https://venturebeat.com/category/ai/feed/"},
-    {"name": "Mistral AI (0xSMW)",
-     "url": "https://raw.githubusercontent.com/0xSMW/rss-feeds/main/feeds/feed_mistral_news.xml"},
-    {"name": "Lovable Blog",
-     "url": "https://lovable.dev/blog/rss.xml"},
+    {"name": "The Decoder",
+     "url": "https://the-decoder.com/feed/"},
+    {"name": "Hugging Face Blog",
+     "url": "https://huggingface.co/blog/feed.xml"},
+    {"name": "Reddit r/artificial",
+     "url": "https://www.reddit.com/r/artificial/.rss"},
 ]
 
 TIMEOUT_SECONDS = 10
