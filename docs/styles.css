@@ -65,6 +65,13 @@ body {
   color: var(--accent);
 }
 
+#last-updated {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #666;
+  margin-bottom: 8px;
+}
+
 /* Loader */
 
 .loader {

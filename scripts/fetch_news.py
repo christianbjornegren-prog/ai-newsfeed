@@ -28,10 +28,17 @@ MAX_PER_SOURCE = 10
 RSS_FEEDS = [
     {"url": "https://openai.com/blog/rss.xml", "source": "OpenAI Blog"},
     {"url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_news.xml", "source": "Anthropic News"},
+    {"url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_engineering.xml", "source": "Anthropic Engineering"},
     {"url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/", "source": "MIT Technology Review AI"},
     {"url": "https://the-decoder.com/feed/", "source": "The Decoder"},
     {"url": "https://techcrunch.com/category/artificial-intelligence/feed/", "source": "TechCrunch AI"},
     {"url": "https://arstechnica.com/tag/ai/feed/", "source": "Ars Technica AI"},
+    {"url": "https://blog.google/technology/ai/rss/", "source": "Google AI Blog"},
+    {"url": "https://research.google/blog/rss/", "source": "Google Research Blog"},
+    {"url": "https://blogs.microsoft.com/feed/", "source": "Microsoft Official Blog"},
+    {"url": "https://spectrum.ieee.org/feeds/topic/artificial-intelligence.rss", "source": "IEEE Spectrum AI"},
+    {"url": "https://www.marktechpost.com/feed/", "source": "MarkTechPost AI"},
+    {"url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_changelog_claude_code.xml", "source": "Claude Code Changelog"},
 ]
 
 
