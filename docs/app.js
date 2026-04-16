@@ -306,6 +306,33 @@ async function loadArticles() {
     elements.forEach(function (el, i) {
       setTimeout(function () { el.classList.add("visible"); }, i * 80);
     });
+
+    // Show "Senast uppdaterad" based on the newest fetched_at among all articles
+    var latestFetchedAt = null;
+    articles.forEach(function (a) {
+      var ts = a.fetched_at;
+      if (!ts) return;
+      var ms = ts.toMillis ? ts.toMillis() : new Date(ts).getTime();
+      if (latestFetchedAt === null || ms > latestFetchedAt) latestFetchedAt = ms;
+    });
+    if (latestFetchedAt !== null) {
+      var pad = function (n) { return n < 10 ? "0" + n : "" + n; };
+      var d = new Date(latestFetchedAt);
+      var now = new Date();
+      var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      var yesterdayStart = new Date(todayStart.getTime() - 86400000);
+      var time = pad(d.getHours()) + ":" + pad(d.getMinutes());
+      var label;
+      if (d >= todayStart) {
+        label = "I dag " + time;
+      } else if (d >= yesterdayStart) {
+        label = "I g\u00e5r " + time;
+      } else {
+        label = d.getDate() + " " + SV_MONTHS[d.getMonth()] + ", " + time;
+      }
+      var lastUpdatedEl = document.getElementById("last-updated");
+      if (lastUpdatedEl) lastUpdatedEl.textContent = "Senast uppdaterad: " + label;
+    }
   } catch (err) {
     console.error("Failed to load articles:", err);
     loaderEl.remove();
