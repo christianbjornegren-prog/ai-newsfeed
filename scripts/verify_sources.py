@@ -46,12 +46,12 @@ def get_description(entry):
 
 
 def get_published(entry):
-    """Return a human-readable published date, or 'okänt datum'."""
+    """Return a human-readable published date, or 'ok\u00e4nt datum'."""
     for field in ("published", "updated"):
         value = getattr(entry, field, None)
         if value:
             return value
-    return "okänt datum"
+    return "ok\u00e4nt datum"
 
 
 def format_description(title, desc):
@@ -63,7 +63,7 @@ def format_description(title, desc):
     truncated = desc[:MAX_DESC_LENGTH]
     if len(desc) > MAX_DESC_LENGTH:
         truncated += "..."
-    return f'"{ truncated}" \u2705'
+    return f'"{truncated}" \u2705'
 
 
 def verify_source(source):
@@ -88,7 +88,7 @@ def verify_source(source):
             print("Inga artiklar hittades \u274c")
             return False
 
-        labels = ["Senaste artikel", "Näst senaste"]
+        labels = ["Senaste artikel", "N\u00e4st senaste"]
         for i, label in enumerate(labels):
             if i >= len(entries):
                 break
@@ -122,7 +122,7 @@ def main():
             fail += 1
 
     print("\n" + "=" * 60)
-    print(f"  Resultat: {ok} OK, {fail} fel av {len(SOURCES)} källor")
+    print(f"  Resultat: {ok} OK, {fail} fel av {len(SOURCES)} k\u00e4llor")
     print("=" * 60)
 
     if fail > 0:
