@@ -10,18 +10,26 @@ import sys
 import feedparser
 
 SOURCES = [
-    {"name": "OpenAI Blog",
-     "url": "https://openai.com/blog/rss.xml"},
-    {"name": "Anthropic News",
-     "url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_news.xml"},
-    {"name": "MIT Technology Review AI",
-     "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/"},
-    {"name": "The Decoder",
-     "url": "https://the-decoder.com/feed/"},
-    {"name": "TechCrunch AI",
-     "url": "https://techcrunch.com/category/artificial-intelligence/feed/"},
-    {"name": "Ars Technica AI",
-     "url": "https://arstechnica.com/tag/ai/feed/"},
+    {"name": "The Verge AI",
+     "url": "https://www.theverge.com/ai-artificial-intelligence/rss/index.xml"},
+    {"name": "ZDNet AI",
+     "url": "https://www.zdnet.com/topic/artificial-intelligence/rss.xml"},
+    {"name": "VentureBeat AI",
+     "url": "https://venturebeat.com/category/ai/feed/"},
+    {"name": "Reuters Technology",
+     "url": "https://feeds.reuters.com/reuters/technologyNews"},
+    {"name": "Microsoft Official Blog",
+     "url": "https://blogs.microsoft.com/feed/"},
+    {"name": "Microsoft AI Blog",
+     "url": "https://blogs.microsoft.com/ai/feed/"},
+    {"name": "steipete.me (OpenClaw creator)",
+     "url": "https://steipete.me/feed.xml"},
+    {"name": "Hacker News AI",
+     "url": "https://hnrss.org/newest?q=AI+LLM+OpenClaw&points=50"},
+    {"name": "IEEE Spectrum AI",
+     "url": "https://spectrum.ieee.org/feeds/topic/artificial-intelligence.rss"},
+    {"name": "Science Daily AI",
+     "url": "https://www.sciencedaily.com/rss/computers_math/artificial_intelligence.xml"},
 ]
 
 TIMEOUT_SECONDS = 10
@@ -38,12 +46,12 @@ def get_description(entry):
 
 
 def get_published(entry):
-    """Return a human-readable published date, or 'okänt datum'."""
+    """Return a human-readable published date, or 'ok\u00e4nt datum'."""
     for field in ("published", "updated"):
         value = getattr(entry, field, None)
         if value:
             return value
-    return "okänt datum"
+    return "ok\u00e4nt datum"
 
 
 def format_description(title, desc):
@@ -80,7 +88,7 @@ def verify_source(source):
             print("Inga artiklar hittades \u274c")
             return False
 
-        labels = ["Senaste artikel", "Näst senaste"]
+        labels = ["Senaste artikel", "N\u00e4st senaste"]
         for i, label in enumerate(labels):
             if i >= len(entries):
                 break
@@ -114,7 +122,7 @@ def main():
             fail += 1
 
     print("\n" + "=" * 60)
-    print(f"  Resultat: {ok} OK, {fail} fel av {len(SOURCES)} källor")
+    print(f"  Resultat: {ok} OK, {fail} fel av {len(SOURCES)} k\u00e4llor")
     print("=" * 60)
 
     if fail > 0:
