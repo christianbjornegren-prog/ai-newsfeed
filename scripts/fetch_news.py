@@ -38,7 +38,6 @@ RSS_FEEDS = [
     {"url": "https://blogs.microsoft.com/feed/", "source": "Microsoft Official Blog"},
     {"url": "https://spectrum.ieee.org/feeds/topic/artificial-intelligence.rss", "source": "IEEE Spectrum AI"},
     {"url": "https://www.marktechpost.com/feed/", "source": "MarkTechPost AI"},
-    {"url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_changelog_claude_code.xml", "source": "Claude Code Changelog"},
 ]
 
 
