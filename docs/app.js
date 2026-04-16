@@ -74,7 +74,7 @@ function openModal(article) {
   var html = "";
 
   if (article.image_url) {
-    html += '<img class="modal-image" src="' + escapeAttr(article.image_url) + '" alt="">';
+    html += '<div><img class="modal-image" src="' + escapeAttr(article.image_url) + '" alt="" onerror="this.parentElement.remove()"></div>';
   }
 
   html += '<div class="modal-content">';
@@ -117,7 +117,7 @@ function createCard(article) {
     '</div>';
 
   if (article.image_url) {
-    bodyHtml += '<img class="card-thumb" src="' + escapeAttr(article.image_url) + '" alt="">';
+    bodyHtml += '<div class="card-thumb-wrap"><img class="card-thumb" src="' + escapeAttr(article.image_url) + '" alt="" onerror="this.parentElement.remove()"></div>';
   }
 
   card.innerHTML =
@@ -160,7 +160,7 @@ function createCluster(topic, articles) {
 
   var mainHtml = "";
   if (main.image_url) {
-    mainHtml += '<img class="cluster-main-image" src="' + escapeAttr(main.image_url) + '" alt="">';
+    mainHtml += '<div><img class="cluster-main-image" src="' + escapeAttr(main.image_url) + '" alt="" onerror="this.parentElement.remove()"></div>';
   }
   mainHtml += '<div class="cluster-main-content">';
   mainHtml += '<div class="card-header">';
@@ -190,7 +190,7 @@ function createCluster(topic, articles) {
     subHtml += '<p class="card-teaser">' + escapeHtml(sub.teaser || sub.summary || "") + '</p>';
     subHtml += '</div>';
     if (sub.image_url) {
-      subHtml += '<img class="card-thumb" src="' + escapeAttr(sub.image_url) + '" alt="">';
+      subHtml += '<div class="card-thumb-wrap"><img class="card-thumb" src="' + escapeAttr(sub.image_url) + '" alt="" onerror="this.parentElement.remove()"></div>';
     }
 
     subEl.innerHTML = subHtml;
