@@ -10,30 +10,18 @@ import sys
 import feedparser
 
 SOURCES = [
-    {"name": "Google AI Blog",
-     "url": "https://blog.google/technology/ai/rss/"},
-    {"name": "Google Research Blog",
-     "url": "https://research.google/blog/rss/"},
-    {"name": "Microsoft Official Blog",
-     "url": "https://blogs.microsoft.com/feed/"},
-    {"name": "IEEE Spectrum AI",
-     "url": "https://spectrum.ieee.org/feeds/topic/artificial-intelligence.rss"},
-    {"name": "Legora Blog",
-     "url": "https://legora.com/blog/rss.xml"},
-    {"name": "Lovable Blog",
-     "url": "https://lovable.dev/blog/feed"},
-    {"name": "Olshansk RSS (Cursor, xAI, Mistral m.fl.)",
-     "url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_cursor.xml"},
     {"name": "xAI News (Olshansk)",
      "url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_xainews.xml"},
+    {"name": "Mistral AI (0xSMW)",
+     "url": "https://raw.githubusercontent.com/0xSMW/rss-feeds/main/feeds/feed_mistral_news.xml"},
+    {"name": "Anthropic Engineering (Olshansk)",
+     "url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_engineering.xml"},
+    {"name": "Claude Code Changelog (Olshansk)",
+     "url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_changelog_claude_code.xml"},
+    {"name": "Ollama Blog (Olshansk)",
+     "url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_ollama.xml"},
     {"name": "MarkTechPost AI",
      "url": "https://www.marktechpost.com/feed/"},
-    {"name": "ZDNET AI (specifik)",
-     "url": "https://www.zdnet.com/topic/artificial-intelligence/rss.xml"},
-    {"name": "Sifted (European tech/AI)",
-     "url": "https://sifted.eu/feed"},
-    {"name": "import AI (Jack Clark)",
-     "url": "https://importai.substack.com/feed"},
 ]
 
 TIMEOUT_SECONDS = 10
