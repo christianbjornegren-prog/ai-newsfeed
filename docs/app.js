@@ -19,6 +19,11 @@ const loaderEl = document.getElementById("loader");
 const modalOverlay = document.getElementById("modalOverlay");
 const modalBody = document.getElementById("modalBody");
 const modalClose = document.getElementById("modalClose");
+const omOverlay = document.getElementById("omOverlay");
+const omClose = document.getElementById("omClose");
+const burgerBtn = document.getElementById("burgerBtn");
+const burgerMenu = document.getElementById("burgerMenu");
+const burgerAbout = document.getElementById("burgerAbout");
 
 const SV_MONTHS = ["jan", "feb", "mar", "apr", "maj", "jun",
                     "jul", "aug", "sep", "okt", "nov", "dec"];
@@ -95,12 +100,40 @@ function closeModal() {
   document.body.style.overflow = "";
 }
 
+function closeOmModal() {
+  omOverlay.classList.remove("active");
+  document.body.style.overflow = "";
+}
+
 modalClose.addEventListener("click", closeModal);
 modalOverlay.addEventListener("click", function (e) {
   if (e.target === modalOverlay) closeModal();
 });
+
+omClose.addEventListener("click", closeOmModal);
+omOverlay.addEventListener("click", function (e) {
+  if (e.target === omOverlay) closeOmModal();
+});
+
 document.addEventListener("keydown", function (e) {
-  if (e.key === "Escape") closeModal();
+  if (e.key === "Escape") { closeModal(); closeOmModal(); }
+});
+
+burgerBtn.addEventListener("click", function (e) {
+  e.stopPropagation();
+  burgerMenu.classList.toggle("open");
+});
+
+document.addEventListener("click", function (e) {
+  if (!burgerBtn.contains(e.target) && !burgerMenu.contains(e.target)) {
+    burgerMenu.classList.remove("open");
+  }
+});
+
+burgerAbout.addEventListener("click", function () {
+  burgerMenu.classList.remove("open");
+  omOverlay.classList.add("active");
+  document.body.style.overflow = "hidden";
 });
 
 function createCard(article) {
