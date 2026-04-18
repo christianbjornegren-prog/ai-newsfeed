@@ -17,6 +17,12 @@
   <header class="header">
     <div class="header-inner">
       <h1>AI <span>Newsfeed</span></h1>
+      <div class="burger-wrap">
+        <button class="burger-btn" id="burgerBtn">&#9776;</button>
+        <nav class="burger-menu" id="burgerMenu">
+          <button class="burger-menu-item" id="burgerAbout">Om AI Newsfeed</button>
+        </nav>
+      </div>
     </div>
   </header>
   <p id="last-updated"></p>
@@ -32,6 +38,62 @@
     <div class="modal" id="modal">
       <button class="modal-close" id="modalClose">&times;</button>
       <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="omOverlay">
+    <div class="modal" id="omModal">
+      <button class="modal-close" id="omClose">&times;</button>
+      <div class="modal-body om-body">
+        <div class="om-content">
+          <h1>AI Newsfeed</h1>
+          <p>Ett personligt AI-nyhetsflöde byggt för att inte missa det som faktiskt händer i branschen.</p>
+
+          <h2>Vad är det här?</h2>
+          <p>AI Newsfeed aggregerar nyheter från ledande AI-källor och sammanfattar dem automatiskt med Claude AI. Istället för att följa ett dussintal sajter och nyhetsbrev får du allt på ett ställe — skummbart, strukturerat och utan betalväggar.</p>
+
+          <h2>Källor</h2>
+          <p class="om-list-label">Officiella bolagsbloggar:</p>
+          <ul>
+            <li>OpenAI Blog</li>
+            <li>Anthropic News &amp; Engineering</li>
+            <li>Google AI Blog &amp; Google Research</li>
+            <li>Microsoft Official Blog</li>
+          </ul>
+          <p class="om-list-label">Oberoende journalistik:</p>
+          <ul>
+            <li>The Decoder</li>
+            <li>TechCrunch AI</li>
+            <li>Ars Technica AI</li>
+            <li>MIT Technology Review AI</li>
+            <li>IEEE Spectrum AI</li>
+            <li>MarkTechPost AI</li>
+          </ul>
+
+          <h2>Hur det fungerar</h2>
+          <ol>
+            <li>GitHub Actions hämtar nyheter fyra gånger om dagen (03:00, 09:00, 13:00, 18:00 svensk tid)</li>
+            <li>Claude AI (Haiku) sammanfattar varje artikel automatiskt</li>
+            <li>Artiklarna visas grupperade efter ämne</li>
+          </ol>
+
+          <h2>Tech stack</h2>
+          <ul>
+            <li><strong>Frontend:</strong> HTML, CSS, JavaScript (statisk, GitHub Pages)</li>
+            <li><strong>Backend:</strong> Python, GitHub Actions</li>
+            <li><strong>Databas:</strong> Google Firestore</li>
+            <li><strong>AI:</strong> Anthropic Claude API (Haiku)</li>
+            <li><strong>Hosting:</strong> GitHub Pages (gratis)</li>
+          </ul>
+
+          <h2>Byggd av</h2>
+          <p>Christian Björnegren<br>Byggd med Claude Code</p>
+
+          <div class="om-footer">
+            <a href="https://github.com/christianbjornegren-prog/ai-newsfeed" target="_blank" rel="noopener noreferrer">GitHub-repo &rarr;</a>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
