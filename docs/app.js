@@ -372,8 +372,8 @@ async function loadArticles() {
     if (latestFetchedAt !== null) {
       var pad = function (n) { return n < 10 ? "0" + n : "" + n; };
       var d = new Date(latestFetchedAt);
-      var now = new Date();
-      var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      var nowDate = new Date();
+      var todayStart = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
       var yesterdayStart = new Date(todayStart.getTime() - 86400000);
       var time = pad(d.getHours()) + ":" + pad(d.getMinutes());
       var label;
