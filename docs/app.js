@@ -307,7 +307,7 @@ async function loadArticles() {
       collection(db, "articles"),
       where("summary", "!=", null),
       orderBy("fetched_at", "desc"),
-      limit(20)
+      limit(100)
     );
 
     const snapshot = await getDocs(q);
@@ -319,10 +319,31 @@ async function loadArticles() {
       return;
     }
 
-    const articles = [];
-    snapshot.forEach(function (doc) {
-      articles.push(doc.data());
-    });
+    const now = Date.now();
+    const THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
+    const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+
+    const allArticles = [];
+    snapshot.forEach(function (doc) { allArticles.push(doc.data()); });
+
+    function filterByAge(pool, maxMs) {
+      return pool.filter(function (a) {
+        var ts = a.published_at || a.fetched_at;
+        if (!ts) return true;
+        var ms = ts.toMillis ? ts.toMillis() : new Date(ts).getTime();
+        return now - ms <= maxMs;
+      });
+    }
+
+    var articles = filterByAge(allArticles, THREE_DAYS);
+    if (articles.length < 10) {
+      articles = filterByAge(allArticles, SEVEN_DAYS);
+    }
+
+    if (articles.length === 0) {
+      feedEl.innerHTML = '<div class="empty">Inga artiklar att visa just nu.</div>';
+      return;
+    }
 
     var items = buildFeedItems(articles);
 

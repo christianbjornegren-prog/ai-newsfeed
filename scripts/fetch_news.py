@@ -38,6 +38,9 @@ RSS_FEEDS = [
     {"url": "https://blogs.microsoft.com/feed/", "source": "Microsoft Official Blog"},
     {"url": "https://spectrum.ieee.org/feeds/topic/artificial-intelligence.rss", "source": "IEEE Spectrum AI"},
     {"url": "https://www.marktechpost.com/feed/", "source": "MarkTechPost AI"},
+    {"url": "https://techcrunch.com/region/europe/feed/", "source": "TechCrunch Europe"},
+    {"url": "https://eu-startups.com/feed", "source": "EU-Startups"},
+    {"url": "https://siliconcanals.com/feed", "source": "Silicon Canals"},
 ]
 
 
