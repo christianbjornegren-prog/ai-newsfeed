@@ -40,7 +40,6 @@ RSS_FEEDS = [
     {"url": "https://www.marktechpost.com/feed/", "source": "MarkTechPost AI"},
     {"url": "https://techcrunch.com/region/europe/feed/", "source": "TechCrunch Europe"},
     {"url": "https://eu-startups.com/feed", "source": "EU-Startups"},
-    {"url": "https://siliconcanals.com/feed", "source": "Silicon Canals"},
 ]
 
 

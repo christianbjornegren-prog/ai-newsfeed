@@ -75,6 +75,11 @@ function escapeAttr(str) {
   return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function truncateTitle(str) {
+  if (!str) return "";
+  return str.length > 100 ? str.slice(0, 97) + "..." : str;
+}
+
 function openModal(article) {
   var html = "";
 
@@ -145,7 +150,7 @@ function createCard(article) {
 
   var bodyHtml =
     '<div class="card-text">' +
-      '<h2 class="card-title">' + escapeHtml(article.title || "") + '</h2>' +
+      '<h2 class="card-title">' + escapeHtml(truncateTitle(article.title)) + '</h2>' +
       '<p class="card-teaser">' + escapeHtml(teaser) + '</p>' +
     '</div>';
 
@@ -200,7 +205,7 @@ function createCluster(topic, articles) {
   mainHtml += '<span class="card-source">' + escapeHtml(main.source || "") + '</span>';
   mainHtml += '<span class="card-time">' + escapeHtml(formatDate(main.published_at || main.fetched_at)) + '</span>';
   mainHtml += '</div>';
-  mainHtml += '<h2 class="card-title">' + escapeHtml(main.title || "") + '</h2>';
+  mainHtml += '<h2 class="card-title">' + escapeHtml(truncateTitle(main.title)) + '</h2>';
   mainHtml += '<p class="card-teaser">' + escapeHtml(main.teaser || main.summary || "") + '</p>';
   mainHtml += '</div>';
 
@@ -219,7 +224,7 @@ function createCluster(topic, articles) {
     subHtml += '<span class="card-source">' + escapeHtml(sub.source || "") + '</span>';
     subHtml += '<span class="card-time">' + escapeHtml(formatDate(sub.published_at || sub.fetched_at)) + '</span>';
     subHtml += '</div>';
-    subHtml += '<h2 class="cluster-sub-title">' + escapeHtml(sub.title || "") + '</h2>';
+    subHtml += '<h2 class="cluster-sub-title">' + escapeHtml(truncateTitle(sub.title)) + '</h2>';
     subHtml += '<p class="card-teaser">' + escapeHtml(sub.teaser || sub.summary || "") + '</p>';
     subHtml += '</div>';
     if (sub.image_url) {
