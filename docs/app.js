@@ -24,6 +24,7 @@ const omClose = document.getElementById("omClose");
 const burgerBtn = document.getElementById("burgerBtn");
 const burgerMenu = document.getElementById("burgerMenu");
 const burgerAbout = document.getElementById("burgerAbout");
+const reloadBtn = document.getElementById("reloadBtn");
 
 const SV_MONTHS = ["jan", "feb", "mar", "apr", "maj", "jun",
                     "jul", "aug", "sep", "okt", "nov", "dec"];
@@ -139,6 +140,10 @@ burgerAbout.addEventListener("click", function () {
   burgerMenu.classList.remove("open");
   omOverlay.classList.add("active");
   document.body.style.overflow = "hidden";
+});
+
+reloadBtn.addEventListener("click", function () {
+  window.location.reload();
 });
 
 function createCard(article) {

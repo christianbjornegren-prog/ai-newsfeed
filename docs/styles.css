@@ -73,6 +73,23 @@ body {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+}
+
+.reload-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 0.25rem 0.375rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.reload-btn:hover {
+  color: #fff;
 }
 
 .burger-btn {
