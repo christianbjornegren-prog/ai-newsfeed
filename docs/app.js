@@ -349,6 +349,9 @@ async function loadArticles() {
     if (articles.length < 10) {
       articles = filterByAge(allArticles, SEVEN_DAYS);
     }
+    if (articles.length === 0) {
+      articles = allArticles;
+    }
 
     if (articles.length === 0) {
       feedEl.innerHTML = '<div class="empty">Inga artiklar att visa just nu.</div>';
