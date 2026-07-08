@@ -8,10 +8,16 @@ on:
     - cron: '0 18 * * *'
   workflow_dispatch: # Allow manual triggering for testing
 
+# Never let two runs write to Firestore at the same time
+concurrency:
+  group: fetch-news
+  cancel-in-progress: false
+
 jobs:
   fetch-news:
     name: Fetch and store AI news articles
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository

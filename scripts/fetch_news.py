@@ -7,7 +7,9 @@ import json
 import logging
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import feedparser
 import firebase_admin
@@ -15,6 +17,9 @@ import requests
 from bs4 import BeautifulSoup
 from dateutil import parser as dateutil_parser
 from firebase_admin import credentials, firestore
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from feeds import RSS_FEEDS  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,23 +29,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 MAX_PER_SOURCE = 10
+FEED_TIMEOUT_SECONDS = 20
+FEED_WORKERS = 8
+USER_AGENT = "Mozilla/5.0 (compatible; AI-Newsfeed-Bot/1.0)"
 
-RSS_FEEDS = [
-    {"url": "https://openai.com/blog/rss.xml", "source": "OpenAI Blog"},
-    {"url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_news.xml", "source": "Anthropic News"},
-    {"url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_engineering.xml", "source": "Anthropic Engineering"},
-    {"url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/", "source": "MIT Technology Review AI"},
-    {"url": "https://the-decoder.com/feed/", "source": "The Decoder"},
-    {"url": "https://techcrunch.com/category/artificial-intelligence/feed/", "source": "TechCrunch AI"},
-    {"url": "https://arstechnica.com/tag/ai/feed/", "source": "Ars Technica AI"},
-    {"url": "https://blog.google/technology/ai/rss/", "source": "Google AI Blog"},
-    {"url": "https://research.google/blog/rss/", "source": "Google Research Blog"},
-    {"url": "https://blogs.microsoft.com/feed/", "source": "Microsoft Official Blog"},
-    {"url": "https://spectrum.ieee.org/feeds/topic/artificial-intelligence.rss", "source": "IEEE Spectrum AI"},
-    {"url": "https://www.marktechpost.com/feed/", "source": "MarkTechPost AI"},
-    {"url": "https://techcrunch.com/region/europe/feed/", "source": "TechCrunch Europe"},
-    {"url": "https://eu-startups.com/feed", "source": "EU-Startups"},
-]
+# Query parameters that only track the visitor — stripped before dedup/storage
+TRACKING_PARAMS = {
+    "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
+    "fbclid", "gclid", "mc_cid", "mc_eid", "ref", "cmpid", "guccounter",
+}
 
 
 def init_firestore() -> firestore.Client:
@@ -59,6 +56,23 @@ def init_firestore() -> firestore.Client:
     cred = credentials.Certificate(service_account_info)
     firebase_admin.initialize_app(cred)
     return firestore.client()
+
+
+def normalize_url(url: str) -> str:
+    """Strip tracking parameters and fragments so the same article
+    always dedups to the same URL regardless of how the feed linked it."""
+    try:
+        parts = urlsplit(url.strip())
+        params = [
+            (k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True)
+            if k.lower() not in TRACKING_PARAMS
+        ]
+        return urlunsplit((
+            parts.scheme, parts.netloc, parts.path,
+            urlencode(params), "",
+        ))
+    except ValueError:
+        return url.strip()
 
 
 def parse_published_at(entry) -> datetime | None:
@@ -88,9 +102,7 @@ def strip_html(text: str) -> str:
 def fetch_og_image(url: str) -> str | None:
     """Fetch the Open Graph image URL from a page."""
     try:
-        resp = requests.get(url, timeout=10, headers={
-            "User-Agent": "Mozilla/5.0 (compatible; AI-Newsfeed-Bot/1.0)"
-        })
+        resp = requests.get(url, timeout=10, headers={"User-Agent": USER_AGENT})
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
         tag = soup.find("meta", property="og:image")
@@ -101,13 +113,33 @@ def fetch_og_image(url: str) -> str | None:
     return None
 
 
+def download_feed(url: str) -> bytes | None:
+    """Download raw feed content with a hard timeout.
+
+    feedparser.parse(url) has no timeout and can hang an entire workflow run
+    on one slow feed — so we download with requests and parse the bytes.
+    """
+    try:
+        resp = requests.get(url, timeout=FEED_TIMEOUT_SECONDS,
+                            headers={"User-Agent": USER_AGENT})
+        resp.raise_for_status()
+        return resp.content
+    except Exception as exc:
+        logger.warning("Failed to download feed %s: %s", url, exc)
+        return None
+
+
 def fetch_entries(feed_config: dict) -> list[dict]:
     """Fetch and parse entries from a single RSS feed."""
     url = feed_config["url"]
     source = feed_config["source"]
 
     logger.info("Fetching feed: %s (%s)", source, url)
-    parsed = feedparser.parse(url)
+    content = download_feed(url)
+    if content is None:
+        return []
+
+    parsed = feedparser.parse(content)
 
     if parsed.bozo and not parsed.entries:
         logger.warning("Failed to parse feed %s: %s", source, parsed.bozo_exception)
@@ -135,7 +167,7 @@ def fetch_entries(feed_config: dict) -> list[dict]:
         entries.append(
             {
                 "title": title.strip(),
-                "url": link.strip(),
+                "url": normalize_url(link),
                 "source": source,
                 "published_at": published_at or datetime.now(timezone.utc),
                 "rss_description": rss_description,
@@ -168,10 +200,11 @@ def save_article(db: firestore.Client, article: dict):
 def main() -> None:
     db = init_firestore()
 
-    # Collect all entries from all feeds
+    # Fetch all feeds in parallel — one slow feed no longer delays the rest
     all_entries: list[dict] = []
-    for feed_config in RSS_FEEDS:
-        all_entries.extend(fetch_entries(feed_config))
+    with ThreadPoolExecutor(max_workers=FEED_WORKERS) as pool:
+        for entries in pool.map(fetch_entries, RSS_FEEDS):
+            all_entries.extend(entries)
 
     logger.info("Total entries fetched across all feeds: %d", len(all_entries))
 

@@ -2,10 +2,20 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>AI Newsfeed</title>
+  <meta name="description" content="Automatiskt AI-nyhetsflöde — nyheter från ledande AI-källor, sammanfattade av Claude och grupperade efter ämne.">
+  <meta name="theme-color" content="#0f0f0f">
 
   <!-- GitHub Pages: configure repository to serve from docs/ folder in Settings > Pages -->
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AI Newsfeed">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,33 +28,46 @@
     <div class="header-inner">
       <h1>AI <span>Newsfeed</span></h1>
       <div class="burger-wrap">
-        <button class="reload-btn" id="reloadBtn">&#x21BB;</button>
-        <button class="burger-btn" id="burgerBtn">&#9776;</button>
+        <button class="icon-btn" id="searchBtn" aria-label="S&ouml;k artiklar">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
+          </svg>
+        </button>
+        <button class="reload-btn" id="reloadBtn" aria-label="Ladda om">&#x21BB;</button>
+        <button class="burger-btn" id="burgerBtn" aria-label="Meny">&#9776;</button>
         <nav class="burger-menu" id="burgerMenu">
           <button class="burger-menu-item" id="burgerAbout">Om AI Newsfeed</button>
         </nav>
       </div>
     </div>
+    <div class="search-row" id="searchRow">
+      <input type="search" id="searchInput" placeholder="S&ouml;k i fl&ouml;det&hellip;" autocomplete="off">
+    </div>
+    <div class="chips-row" id="chipsRow"></div>
   </header>
   <p id="last-updated"></p>
 
   <main class="feed" id="feed">
-    <div class="loader" id="loader">
-      <div class="loader-spinner"></div>
-      <span class="loader-text">H&auml;mtar artiklar&hellip;</span>
+    <div class="loader" id="loader" aria-label="H&auml;mtar artiklar">
+      <div class="skeleton-card"><div class="skeleton-line w40"></div><div class="skeleton-line w90 tall"></div><div class="skeleton-line w70"></div></div>
+      <div class="skeleton-card"><div class="skeleton-line w40"></div><div class="skeleton-line w90 tall"></div><div class="skeleton-line w70"></div></div>
+      <div class="skeleton-card"><div class="skeleton-line w40"></div><div class="skeleton-line w90 tall"></div><div class="skeleton-line w70"></div></div>
     </div>
   </main>
 
+  <button class="scroll-top" id="scrollTop" aria-label="Till toppen">&#8593;</button>
+
   <div class="modal-overlay" id="modalOverlay">
-    <div class="modal" id="modal">
-      <button class="modal-close" id="modalClose">&times;</button>
+    <div class="modal" id="modal" role="dialog" aria-modal="true">
+      <button class="modal-close" id="modalClose" aria-label="St&auml;ng">&times;</button>
       <div class="modal-body" id="modalBody"></div>
     </div>
   </div>
 
   <div class="modal-overlay" id="omOverlay">
-    <div class="modal" id="omModal">
-      <button class="modal-close" id="omClose">&times;</button>
+    <div class="modal" id="omModal" role="dialog" aria-modal="true">
+      <button class="modal-close" id="omClose" aria-label="St&auml;ng">&times;</button>
       <div class="modal-body om-body">
         <div class="om-content">
           <h1>AI Newsfeed</h1>
@@ -52,23 +75,33 @@
 
           <h2>Vad är det här?</h2>
           <p>AI Newsfeed aggregerar nyheter från ledande AI-källor och sammanfattar dem automatiskt med Claude AI. Istället för att följa ett dussintal sajter och nyhetsbrev får du allt på ett ställe — skummbart, strukturerat och utan betalväggar.</p>
+          <p>Lägg till appen på hemskärmen för snabbaste upplevelsen — den fungerar som en installerad app, även offline.</p>
 
           <h2>Källor</h2>
           <p class="om-list-label">Officiella bolagsbloggar:</p>
           <ul>
             <li>OpenAI Blog</li>
             <li>Anthropic News &amp; Engineering</li>
-            <li>Google AI Blog &amp; Google Research</li>
+            <li>Google AI, Google Research &amp; DeepMind</li>
             <li>Microsoft Official Blog</li>
+            <li>Hugging Face Blog</li>
           </ul>
           <p class="om-list-label">Oberoende journalistik:</p>
           <ul>
             <li>The Decoder</li>
-            <li>TechCrunch AI</li>
+            <li>TechCrunch AI &amp; TechCrunch Europe</li>
             <li>Ars Technica AI</li>
             <li>MIT Technology Review AI</li>
             <li>IEEE Spectrum AI</li>
+            <li>The Verge AI</li>
+            <li>VentureBeat AI</li>
             <li>MarkTechPost AI</li>
+            <li>EU-Startups</li>
+          </ul>
+          <p class="om-list-label">Användarpulsen — vad praktiker bygger och diskuterar:</p>
+          <ul>
+            <li>Simon Willison</li>
+            <li>Hacker News AI (endast högt röstade)</li>
           </ul>
 
           <h2>Hur det fungerar</h2>
@@ -80,7 +113,7 @@
 
           <h2>Tech stack</h2>
           <ul>
-            <li><strong>Frontend:</strong> HTML, CSS, JavaScript (statisk, GitHub Pages)</li>
+            <li><strong>Frontend:</strong> HTML, CSS, JavaScript (statisk PWA, GitHub Pages)</li>
             <li><strong>Backend:</strong> Python, GitHub Actions</li>
             <li><strong>Databas:</strong> Google Firestore</li>
             <li><strong>AI:</strong> Anthropic Claude API (Haiku)</li>

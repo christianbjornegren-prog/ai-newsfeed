@@ -22,7 +22,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-MAX_ARTICLES = 20
+MAX_ARTICLES = 30
 SYSTEM_PROMPT = (
     "You are a news editor creating a feed card for an AI industry newsletter.\n"
     "Given an article title and description, respond with ONLY a valid JSON "

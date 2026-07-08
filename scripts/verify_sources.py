@@ -6,23 +6,17 @@ Tests each RSS feed and prints a terminal report showing article counts,
 latest entries, and description quality warnings.
 """
 
+import os
 import sys
+
 import feedparser
 
-SOURCES = [
-    {"name": "xAI News (Olshansk)",
-     "url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_xainews.xml"},
-    {"name": "Mistral AI (0xSMW)",
-     "url": "https://raw.githubusercontent.com/0xSMW/rss-feeds/main/feeds/feed_mistral_news.xml"},
-    {"name": "Anthropic Engineering (Olshansk)",
-     "url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_engineering.xml"},
-    {"name": "Claude Code Changelog (Olshansk)",
-     "url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_changelog_claude_code.xml"},
-    {"name": "Ollama Blog (Olshansk)",
-     "url": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_ollama.xml"},
-    {"name": "MarkTechPost AI",
-     "url": "https://www.marktechpost.com/feed/"},
-]
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from feeds import RSS_FEEDS  # noqa: E402
+
+# Verify the exact production feed list — imported from feeds.py so this
+# report can never drift out of sync with what fetch_news.py actually uses.
+SOURCES = [{"name": f["source"], "url": f["url"]} for f in RSS_FEEDS]
 
 TIMEOUT_SECONDS = 10
 MAX_DESC_LENGTH = 150

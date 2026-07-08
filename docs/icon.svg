@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0f0f0f"/>
+  <radialGradient id="g" cx="0.5" cy="0.42" r="0.55">
+    <stop offset="0" stop-color="#6c63ff" stop-opacity="0.22"/>
+    <stop offset="1" stop-color="#6c63ff" stop-opacity="0"/>
+  </radialGradient>
+  <rect width="512" height="512" fill="url(#g)"/>
+  <text x="256" y="272" font-family="Inter, -apple-system, 'DejaVu Sans', sans-serif"
+        font-size="190" font-weight="700" fill="#f0f0f0" text-anchor="middle">AI</text>
+  <path d="M120 352 L196 352 L222 308 L258 396 L286 352 L392 352"
+        stroke="#6c63ff" stroke-width="24" fill="none"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
