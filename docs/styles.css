@@ -151,6 +151,10 @@ body {
   margin-bottom: 8px;
 }
 
+#last-updated.stale {
+  color: #d2a24c;
+}
+
 /* Loader — skeleton cards */
 
 .loader {

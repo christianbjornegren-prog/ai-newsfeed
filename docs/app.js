@@ -584,6 +584,15 @@ function updatePulseLine(fromCache) {
   if (publishedToday > 0) text += " · " + publishedToday + " i dag";
   if (newForYou > 0) text += " · " + newForYou + " nya för dig";
   if (fromCache) text += " · uppdaterar…";
+
+  // Safety net: the fetch pipeline runs 4×/day. If the freshest article is
+  // more than two days old, something upstream has stalled — surface it
+  // instead of letting the feed quietly rot (as it did before the keepalive).
+  const STALE_MS = 2 * 24 * 60 * 60 * 1000;
+  const isStale = !fromCache && (Date.now() - latestFetchedAt > STALE_MS);
+  if (isStale) text += " · ⚠ flödet kan vara inaktuellt";
+  lastUpdatedEl.classList.toggle("stale", isStale);
+
   lastUpdatedEl.textContent = text;
 }
 

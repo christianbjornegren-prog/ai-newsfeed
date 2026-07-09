@@ -18,6 +18,9 @@ jobs:
     name: Fetch and store AI news articles
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Needed by the keepalive step to push an empty commit
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -41,3 +44,25 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+
+      # GitHub auto-disables scheduled workflows after 60 days of repository
+      # inactivity — and a workflow's own runs do NOT count as activity, only
+      # commits do. That is exactly why fetching silently stopped before.
+      # This step refreshes repo activity itself, well before the deadline, so
+      # the schedule can never die again. Runs even if the steps above failed.
+      - name: Keepalive — keep the cron schedule from being auto-disabled
+        if: always()
+        run: |
+          latest=$(git log -1 --format=%ct)
+          now=$(date +%s)
+          age_days=$(( (now - latest) / 86400 ))
+          echo "Newest commit is ${age_days} day(s) old."
+          if [ "$age_days" -ge 50 ]; then
+            echo "Approaching the 60-day inactivity limit — refreshing activity."
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "chore: keepalive to keep scheduled fetch alive [skip ci]"
+            git push
+          else
+            echo "Plenty of margin — no keepalive commit needed."
+          fi
