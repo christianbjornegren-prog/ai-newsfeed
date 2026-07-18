@@ -2,7 +2,7 @@
 // Strategy: always try the network so the app never serves a stale shell;
 // cache every successful same-origin response so the app still opens offline.
 
-const CACHE = "ai-newsfeed-v3";
+const CACHE = "ai-newsfeed-v4";
 
 const SHELL = [
   "./",

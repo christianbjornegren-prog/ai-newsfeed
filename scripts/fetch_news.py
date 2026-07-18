@@ -3,6 +3,7 @@
 Fetch AI news from RSS feeds and save to Firestore.
 """
 
+import html
 import json
 import logging
 import os
@@ -166,7 +167,9 @@ def fetch_entries(feed_config: dict) -> list[dict]:
 
         entries.append(
             {
-                "title": title.strip(),
+                # Some feeds double-encode entities (e.g. "she&#8217;s") —
+                # unescape so titles are stored as clean text.
+                "title": html.unescape(title.strip()),
                 "url": normalize_url(link),
                 "source": source,
                 "published_at": published_at or datetime.now(timezone.utc),

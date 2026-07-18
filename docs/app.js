@@ -129,16 +129,27 @@ function toMs(ts) {
   return new Date(ts).getTime() || 0;
 }
 
+// Some RSS feeds double-encode HTML entities, so titles arrive as literal
+// "she&#8217;s" instead of "she's". Decode them once here. A <textarea> is
+// RCDATA — it resolves character references but never parses tags, so this
+// can't execute markup; downstream escapeHtml still guards the actual insert.
+const _decoderEl = document.createElement("textarea");
+function decodeEntities(str) {
+  if (!str || str.indexOf("&") === -1) return str || "";
+  _decoderEl.innerHTML = str;
+  return _decoderEl.value;
+}
+
 // Normalize a Firestore doc (or cached object) to a plain, JSON-safe article
 function normalizeArticle(raw) {
   return {
-    title: raw.title || "",
+    title: decodeEntities(raw.title),
     url: raw.url || "",
-    source: raw.source || "",
-    topic: raw.topic || "AI",
-    teaser: raw.teaser || "",
-    summary: raw.summary || "",
-    rss_description: raw.rss_description || "",
+    source: decodeEntities(raw.source),
+    topic: decodeEntities(raw.topic) || "AI",
+    teaser: decodeEntities(raw.teaser),
+    summary: decodeEntities(raw.summary),
+    rss_description: decodeEntities(raw.rss_description),
     image_url: isSafeUrl(raw.image_url) ? raw.image_url : "",
     published_at: toMs(raw.published_at),
     fetched_at: toMs(raw.fetched_at),
